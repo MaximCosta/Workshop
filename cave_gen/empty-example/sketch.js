@@ -6,6 +6,11 @@ const sleep = (s) => new Promise((resolve) => { setTimeout(resolve, s); })
 
 let cave = [];
 
+const show_print = true;
+const make_cave = true;
+const cave_size = { x: 100, y: 250 };
+const canvas_size = { x: 1900, y: 950 };
+
 function download_cave(filename) {
     let text = ""
 
@@ -26,18 +31,20 @@ function download_cave(filename) {
 }
 
 async function setup() {
-    createCanvas(1900, 950);
+    createCanvas(canvas_size.x, canvas_size.y);
     background(0);
 
     // generate a perfect lab
-    generate_board();
-    await prims_alog();
-    await draw_cave();
+    generate_board(); // size of board
+    await prims_alog(); // where start the lab x, y
+    await draw_cave();  // show log, time beetween to print
 
     // make caves
-    await remove_corner()
-    await generate_cave()
-    await remove_corner()
+    if (make_cave) {
+        await remove_corner() // param time beetween to print
+        await generate_cave() // param time beetween to print
+        await remove_corner() // param time beetween to print
+    }
 
     // save to filename
     download_cave('cave.txt', cave.map((v) => v.map((x) => (x <= 10 ? "#" : " ")).join("")).join("\n"))
@@ -82,7 +89,7 @@ function draw() {
     // put drawing code here
 }
 
-function generate_board(x = 100, y = 250) {
+function generate_board(x = cave_size.x, y = cave_size.y) {
     cave.push(ran(x + 2, 10));
     for (let i = 0; i < y; i++) {
         cave.push([10, ...ran(x, [0, 9]), 10]);

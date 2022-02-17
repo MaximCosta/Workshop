@@ -1,10 +1,29 @@
 const rnd = (min, max) => Math.floor(Math.random() * (max - min + 1) + min);
-const ran = (max, val) =>[...Array(max).keys()].map(() => (Array.isArray(val) ? rnd(...val) : val));
+const ran = (max, val) => [...Array(max).keys()].map(() => (Array.isArray(val) ? rnd(...val) : val));
 const pos = (x, y) => [[x - 1, y], [x + 1, y], [x, y - 1], [x, y + 1]];
 const poss = (x, y) => [[x - 1, y - 1], [x + 1, y + 1], [x + 1, y - 1], [x - 1, y + 1]];
-const sleep = (s) => new Promise((resolve) => {setTimeout(resolve, s);})
+const sleep = (s) => new Promise((resolve) => { setTimeout(resolve, s); })
 
 let cave = [];
+
+function download_cave(filename) {
+    let text = ""
+
+    for (let idy = 1; idy < cave.length - 1; idy++) {
+        for (let idx = 1; idx < cave[idy].length; idx++) {
+            text += `${cave[idy][idx]}`
+        }
+        text += "\n"
+    }
+
+    var element = document.createElement('a');
+    element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(text));
+    element.setAttribute('download', filename);
+    element.style.display = 'none';
+    document.body.appendChild(element);
+    element.click();
+    document.body.removeChild(element);
+}
 
 async function setup() {
     createCanvas(1900, 950);
@@ -19,6 +38,9 @@ async function setup() {
     await remove_corner()
     await generate_cave()
     await remove_corner()
+
+    // save to filename
+    download_cave('cave.txt', cave.map((v) => v.map((x) => (x <= 10 ? "#" : " ")).join("")).join("\n"))
 }
 
 async function generate_cave(t = rnd(3, 6)) {
@@ -71,14 +93,14 @@ function generate_board(x = 100, y = 250) {
 function get_touch(x, y) {
     let counter = 0;
 
-    pos(x, y).forEach(([tx, ty]) => {if (cave[ty][tx] == 11) counter++;});
+    pos(x, y).forEach(([tx, ty]) => { if (cave[ty][tx] == 11) counter++; });
     return counter;
 }
 
 function get_touchs(x, y) {
     let counter = 0;
 
-    poss(x, y).forEach(([tx, ty]) => {if (cave[ty][tx] == 11) counter++;});
+    poss(x, y).forEach(([tx, ty]) => { if (cave[ty][tx] == 11) counter++; });
     return counter;
 }
 
@@ -134,17 +156,8 @@ async function prims_alog(nx = 1, ny = 1) {
 
 async function draw_cave(log = false, time = 1) {
     await sleep(time)
-    if (log) {
-        console.log(
-            cave
-                .map((v) => v.map((x) => (x <= 10 ? "#" : " ")).join(" "))
-                .join("\n")
-        );
-    }
-    size = {
-        x: (width / cave.length),
-        y: (height / cave[0].length),
-    };
+    if (log) { console.log(cave.map((v) => v.map((x) => (x <= 10 ? "#" : " ")).join(" ")).join("\n")); }
+    size = { x: (width / cave.length), y: (height / cave[0].length), };
     cave.forEach((cavy, idy) => {
         cavy.forEach((x, idx) => {
             if (x == 11) {

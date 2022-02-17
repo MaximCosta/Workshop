@@ -164,6 +164,7 @@ async function prims_alog(nx = 1, ny = 1) {
 async function draw_cave(log = false, time = 1) {
     await sleep(time)
     if (log) { console.log(cave.map((v) => v.map((x) => (x <= 10 ? "#" : " ")).join(" ")).join("\n")); }
+    if (!show_print) return;
     size = { x: (width / cave.length), y: (height / cave[0].length), };
     cave.forEach((cavy, idy) => {
         cavy.forEach((x, idx) => {

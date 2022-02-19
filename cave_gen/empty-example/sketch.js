@@ -8,8 +8,8 @@ let cave = [];
 
 const show_print = true;
 const make_cave = true;
-const cave_size = { x: 100, y: 250 };
-const canvas_size = { x: 1900, y: 950 };
+const cave_size = { x: 250, y: 250 };
+const canvas_size = { x: 950, y: 950 };
 
 function download_cave(filename) {
     let text = ""

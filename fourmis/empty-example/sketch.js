@@ -8,7 +8,7 @@ const sum = (arr) => arr.reduce((a, b) => a + b, 0);
 
 const canvas_size = { x: 800, y: 800 };
 const size_node = 20;
-const nb_nodes = 50
+const nb_nodes = 25;
 let nodes = [];
 
 let selected = -1;
@@ -31,7 +31,7 @@ const phPower = 1;
 const initPh = 1;
 const phIntensity = 1000;
 const eachStep = .3;
-const nbAnt = 50;
+const nbAnt = 20;
 
 // path ph
 let ants = [];

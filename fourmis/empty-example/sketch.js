@@ -6,32 +6,36 @@ const distp = (p1, p2) => p2.map(({ x, y }) => dist(x, y, p1.x, p1.y))
 const sleep = (s) => new Promise((resolve) => { setTimeout(resolve, s); })
 const sum = (arr) => arr.reduce((a, b) => a + b, 0);
 
+
+// graphical info
 const canvas_size = { x: 800, y: 800 };
 const size_node = 20;
-const nb_nodes = 25;
-let nodes = [];
 
-let selected = -1;
-
-let ant_paths = []
-let ant_sizes = []
-
-let nb_ant = 1;
 
 // show or not
 let searching = false;
-let show_dist = false; // NUMPAD 1
-let show_most = true; // NUMPAD 2
-let show_paths = true; // NUMPAD 3
+let show_most = true; // NUMPAD 2   show green best path
+let show_paths = true; // NUMPAD 3 show all path from ant
+let show_dist = false;      // NUMPAD 4 show all dist point
+let show_ph_dist = false;   // NUMPAD 5 show all path depende en ph
+let show_all_dist = false;   // NUMPAD 6 show all path depende en ph and dist
+let ant_go = false; // g key
 
+// nodes info
+let nodes = [];
+let selected = -1;
+let user_ant = -1;
 
 // some variables you can change
-const dstPower = 4;
-const phPower = 1;
+let nb_nodes = 25;
+
+let dstPower = 4;  // slider
+let phPower = 1;   // slider
+let nbAnt = 20;  // slider
+
 const initPh = 1;
-const phIntensity = 1000;
+const phIntensity = 1500;
 const eachStep = .3;
-const nbAnt = 20;
 
 // path ph
 let ants = [];
@@ -48,20 +52,31 @@ function setup() {
         element.addEventListener("contextmenu", (e) => e.preventDefault());
     }
 
-    canvas_size.x = windowWidth
-    canvas_size.y = windowHeight
+    canvas_size.x = windowWidth - 20
+    canvas_size.y = windowHeight - 25
     createCanvas(canvas_size.x, canvas_size.y);
     background(0);
 
     // generate random point
     nodes = ran(nb_nodes, 0).map(() => ({ x: rnd(0 + size_node, width - size_node), y: rnd(0 + size_node, height - size_node) }))
-    ant_paths.push(rng(nb_nodes));
-    ant_sizes.push(0);
-    for (let i = 0; i < nodes.length; i++) {
-        p1 = nodes[i]
-        p2 = nodes[(i + 1) % nodes.length];
-        ant_sizes[0] += dist(p1.x, p1.y, p2.x, p2.y)
-    }
+
+    // slider
+    textSize(15);
+    noStroke();
+
+    // create sliders
+    nbAnt = createSlider(0, 100, 25);
+    nbAnt.position(20, 40);
+    dstPower = createSlider(0, 10, 4);
+    dstPower.position(20, 70);
+    phPower = createSlider(0, 10, 1);
+    phPower.position(20, 100);
+
+    show_most = select("#box1").elt;
+    show_paths = select("#box2").elt;
+    show_dist = select("#box3").elt;
+    show_ph_dist = select("#box4").elt;
+    show_all_dist = select("#box5").elt;
 }
 
 function get_ph_trail(p1, p2) {
@@ -73,7 +88,7 @@ function ant_next(ant_path, pos) {
     const ant = nodes[pos];
     let distps = distp(ant, nodes)
 
-    distps = distps.map((v, idx) => ant_path.includes(idx) ? 0 : Math.pow(1 / v, dstPower) * Math.pow(get_ph_trail(pos, idx), phPower));
+    distps = distps.map((v, idx) => ant_path.includes(idx) ? 0 : Math.pow(1 / v, dstPower.value()) * Math.pow(get_ph_trail(pos, idx), phPower.value()));
     distps = distps.map(dis => dis / sum(distps))
     let r = Math.random()
     for (let i = 0; i < distps.length; i++) {
@@ -84,7 +99,7 @@ function ant_next(ant_path, pos) {
 }
 
 async function ant_algo_2() {
-    ants = ran(nbAnt, [0, nodes.length - 1]);
+    ants = ran(nbAnt.value(), [0, nodes.length - 1]);
     ants_paths = ants.map((val, idx) => [val]);
     searching = true;
     for (let i = 0; i < nodes.length; i++) {
@@ -109,7 +124,7 @@ async function ant_algo_2() {
             let p2 = ants_paths[i][(j + 1) % nodes.length]
             path_dist += dist(nodes[p1].x, nodes[p1].y, nodes[p2].x, nodes[p2].y);
         }
-        if (path_dist < path_dist_max) {path_dist_max = path_dist; path_max = [...ants_paths[i]]}
+        if (path_dist < path_dist_max) { path_dist_max = path_dist; path_max = [...ants_paths[i]] }
         path_dist = phIntensity / path_dist / nodes.length;
         for (let j = 0; j < ants_paths[i].length; j++) {
             let p1 = ants_paths[i][j];
@@ -123,20 +138,22 @@ async function ant_algo_2() {
 }
 
 async function lunch_ant() {
-    console.log("lunch")
-    for (let i = 0; i < 10000; i++) {
-        await ant_algo_2()
-    }
-    console.log("finish")
+    if (ant_go && !searching) await ant_algo_2()
 }
 
 function draw() {
     background(0);
     fill(255);
     noStroke();
+    lunch_ant()
+
+    // slider
+    text(`nb Ant    : ${nbAnt.value()}`, nbAnt.x * 2 + nbAnt.width, 35);
+    text(`ph Power  : ${dstPower.value()}`, dstPower.x * 2 + dstPower.width, 65);
+    text(`dst Power : ${phPower.value()}`, phPower.x * 2 + phPower.width, 95);
 
     // write all path with alpha
-    if (show_paths) {
+    if (show_paths.checked) {
         for (const [p, ph] of Object.entries(path_ph)) {
             const [p1, p2] = p.split(',');
             if (p2 == 'NaN' || p1 == 'NaN') continue;
@@ -148,13 +165,53 @@ function draw() {
     noStroke();
 
     //write best path in green
-    if (show_paths && path_max.length) {
+    if (show_most.checked && path_max.length) {
         for (let i = 0; i < nodes.length; i++) {
             let p1 = nodes[path_max[i]];
             let p2 = nodes[path_max[(i + 1) % nodes.length]];
-            console.log(path_max)
             if (p2 == 'NaN' || p1 == 'NaN') continue;
             stroke(88, 168, 50);
+            strokeWeight(2);
+            line(p1.x, p1.y, p2.x, p2.y);
+        }
+    }
+    noStroke();
+
+    // write dist to user ant by dist
+    if (show_dist.checked && user_ant != -1) {
+        let p1 = nodes[user_ant];
+        let dist_all = nodes.map((p2, idx) => user_ant != idx ? Math.pow(1 / dist(p1.x, p1.y, p2.x, p2.y), dstPower.value()) : Infinity);
+        for (let i = 0; i < nodes.length; i++) {
+            if (i == user_ant) continue;
+            let p2 = nodes[i];
+            stroke(255, 255, 255, dist_all[i] / Math.min(...dist_all));
+            strokeWeight(2);
+            line(p1.x, p1.y, p2.x, p2.y);
+        }
+    }
+    noStroke();
+
+    // write dist to user ant by ph
+    if (show_ph_dist.checked && user_ant != -1) {
+        let p1 = nodes[user_ant];
+        for (let i = 0; i < nodes.length; i++) {
+            if (i == user_ant) continue;
+            let p2 = nodes[i];
+            stroke(255, 255, 255, Math.pow(get_ph_trail(user_ant, i), phPower.value()));
+            strokeWeight(2);
+            line(p1.x, p1.y, p2.x, p2.y);
+        }
+    }
+    noStroke();
+
+    // write dist to user ant by all
+    if (show_all_dist.checked && user_ant != -1) {
+        let p1 = nodes[user_ant];
+        let dist_all = nodes.map((p2, idx) => user_ant != idx ? Math.pow(1 / dist(p1.x, p1.y, p2.x, p2.y), dstPower.value()) : Infinity);
+        for (let i = 0; i < nodes.length; i++) {
+            if (i == user_ant) continue;
+            let p2 = nodes[i];
+            stroke(255, 255, 255, (dist_all[i] / Math.min(...dist_all)) * Math.pow(get_ph_trail(user_ant, i), phPower.value()));
             strokeWeight(2);
             line(p1.x, p1.y, p2.x, p2.y);
         }
@@ -173,6 +230,7 @@ function draw() {
         }
 
         if (ants.includes(i) && searching) fill(75, 224, 29);
+        if (user_ant == i) fill(11, 103, 217)
         ellipse(x, y, size_node)
     }
 
@@ -195,12 +253,25 @@ function mousePressed(event) {
             }
         }
     }
+    if (event.button == 2) {
+        user_ant = -1;
+        for (let i = 0; i < nodes.length; i++) {
+            let { x, y } = nodes[i];
+            if (dist(x, y, mouseX, mouseY) < size_node / 2) {
+                user_ant = i;
+            }
+        }
+    }
 }
 
 function keyPressed() {
-    if (keyCode == 97) show_dist = !show_dist;
-    if (keyCode == 98) show_most = !show_most;
-    if (keyCode == 99) show_paths = !show_paths;
-    if (keyCode == 71) lunch_ant();
+    if (keyCode == 98) show_most.checked = !show_most.checked;
+    if (keyCode == 99) show_paths.checked = !show_paths.checked;
+
+    if (keyCode == 100) show_dist.checked = !show_dist.checked;
+    if (keyCode == 101) show_ph_dist.checked = !show_ph_dist.checked;
+    if (keyCode == 102) show_all_dist.checked = !show_all_dist.checked;
+
+    if (keyCode == 71) ant_go = !ant_go;
     return false;
 }

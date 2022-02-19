@@ -9,7 +9,7 @@ let cave = [];
 const show_print = true;
 const make_cave = true;
 const cave_size = { x: 250, y: 250 };
-const canvas_size = { x: 950, y: 950 };
+const canvas_size = { x: 1000, y: 1000 };
 
 function download_cave(filename) {
     let text = ""

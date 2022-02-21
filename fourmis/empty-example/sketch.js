@@ -31,7 +31,7 @@ let nb_nodes = 25;
 
 let dstPower = 4;  // slider
 let phPower = 1;   // slider
-let nbAnt = 20;  // slider
+let nbAnt = 25;  // slider
 
 const initPh = 1;
 const phIntensity = 1500;
@@ -72,6 +72,7 @@ function setup() {
     phPower = createSlider(0, 10, 1);
     phPower.position(20, 100);
 
+    show_node = select("#box0").elt;
     show_most = select("#box1").elt;
     show_paths = select("#box2").elt;
     show_dist = select("#box3").elt;
@@ -219,19 +220,21 @@ function draw() {
     noStroke();
 
     // write nodes to canvas
-    for (let i = 0; i < nodes.length; i++) {
-        let { x, y } = nodes[i];
+    if (show_node.checked) {
+        for (let i = 0; i < nodes.length; i++) {
+            let { x, y } = nodes[i];
 
-        fill(255, 0, 0)
-        if (selected == i) {
-            fill(255, 255, 0);
-            nodes[i].x = mouseX;
-            nodes[i].y = mouseY;
+            fill(255, 0, 0)
+            if (selected == i) {
+                fill(255, 255, 0);
+                nodes[i].x = mouseX;
+                nodes[i].y = mouseY;
+            }
+
+            if (ants.includes(i) && searching) fill(75, 224, 29);
+            if (user_ant == i) fill(11, 103, 217)
+            ellipse(x, y, size_node)
         }
-
-        if (ants.includes(i) && searching) fill(75, 224, 29);
-        if (user_ant == i) fill(11, 103, 217)
-        ellipse(x, y, size_node)
     }
 
     // draw mouse cursor
@@ -265,6 +268,7 @@ function mousePressed(event) {
 }
 
 function keyPressed() {
+    if (keyCode == 97) show_node.checked = !show_node.checked;
     if (keyCode == 98) show_most.checked = !show_most.checked;
     if (keyCode == 99) show_paths.checked = !show_paths.checked;
 

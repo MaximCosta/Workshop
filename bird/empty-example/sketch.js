@@ -23,7 +23,7 @@ class Vehicle {
         noStroke();
 
         //renderred red dot
-        // circle(wanderPoint.x, wanderPoint.y, 8);
+        //circle(wanderPoint.x, wanderPoint.y, 8);
 
         wanderRadius = slider2.value();
         noFill();
